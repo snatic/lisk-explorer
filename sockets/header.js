@@ -1,151 +1,162 @@
-'use strict';
-
-var api = require('../lib/api'),
-    config = require('../config'),
-    async = require('async');
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+const api = require('../lib/api');
+const config = require('../config');
+const async = require('async');
+const logger = require('../utils/logger');
 
 module.exports = function (app, connectionHandler, socket) {
-    var blocks     = new api.blocks(app),
-        common     = new api.common(app),
-        delegates  = new api.delegates(app),
-        connection = new connectionHandler('Header:', socket, this),
-        intervals  = [],
-        data       = {},
-        tmpData    = {};
+	const blocks = new api.blocks(app);
+	const common = new api.common(app);
+	const delegates = new api.delegates(app);
+	const connection = new connectionHandler('Header:', socket, this);
+	let intervals = [];
+	let data = {};
+	const tmpData = {};
 
-    var running = {
-        'getBlockStatus'       : false,
-        'getPriceTicker'       : false,
-        'getDelegateProposals' : false
-    };
+	const running = {
+		getBlockStatus: false,
+		getPriceTicker: false,
+		getDelegateProposals: false,
+	};
 
-    this.onInit = function () {
-        this.onConnect(); // Prevents data wipe
+	const log = (level, msg) => {
+		logger[level]('Header:', msg);
+	};
 
-        async.parallel([
-            getBlockStatus,
-            getPriceTicker
-        ],
-        function (err, res) {
-            if (err) {
-                log('Error retrieving: ' + err);
-            } else {
-                data.status = res[0];
-                data.ticker = res[1];
+	const newInterval = (i, delay, cb) => {
+		if (intervals[i] !== undefined) {
+			return null;
+		}
+		intervals[i] = setInterval(cb, delay);
+		return intervals[i];
+	};
 
-                log('Emitting new data');
-                socket.emit('data', data);
+	const getBlockStatus = (cb) => {
+		if (running.getBlockStatus) {
+			return cb('getBlockStatus (already running)');
+		}
+		running.getBlockStatus = true;
+		return blocks.getBlockStatus(
+			'preserved',
+			() => { running.getBlockStatus = false; cb('Status'); },
+			(res) => { running.getBlockStatus = false; cb(null, res); });
+	};
 
-                newInterval(0, 10000, emitData);
-                // Update and emit delegate proposals every 10 minutes by default
-                newInterval(1, config.proposals.updateInterval || 600000, emitDelegateProposals);
-            }
-        }.bind(this));
+	const getPriceTicker = (cb) => {
+		if (running.getPriceTicker) {
+			return cb('getPriceTicker (already running)');
+		}
+		running.getPriceTicker = true;
+		return common.getPriceTicker(
+			'preserved',
+			() => { running.getPriceTicker = false; cb('PriceTicker'); },
+			(res) => { running.getPriceTicker = false; cb(null, res); });
+	};
 
-        emitDelegateProposals ();
-    };
+	const getDelegateProposals = (cb) => {
+		if (running.getDelegateProposals) {
+			return cb('getDelegateProposals (already running)');
+		}
+		running.getDelegateProposals = true;
+		return delegates.getDelegateProposals(
+			() => { running.getDelegateProposals = false; cb('DelegateProposals'); },
+			(res) => { running.getDelegateProposals = false; cb(null, res); });
+	};
 
-    this.onConnect = function () {
-        log ('Emitting existing delegate proposals');
-        socket.emit ('delegateProposals', tmpData.proposals);
+	const emitData = () => {
+		const thisData = {};
 
-        log('Emitting existing data');
-        socket.emit('data', data);
-    };
+		async.parallel([
+			getBlockStatus,
+			getPriceTicker,
+		],
+		(err, res) => {
+			if (err) {
+				log('error', `Error retrieving: ${err}`);
+			} else {
+				thisData.status = res[0];
+				thisData.ticker = res[1];
 
-    this.onDisconnect = function () {
-        for (var i = 0; i < intervals.length; i++) {
-            clearInterval(intervals[i]);
-        }
-        intervals = [];
-    };
+				data = thisData;
+				log('info', 'Emitting data');
+				socket.emit('data', thisData);
+			}
+		});
+	};
 
-    // Private
+	const emitDelegateProposals = () => {
+		if (!config.proposals.enabled) {
+			return false;
+		}
 
-    var log = function (msg) {
-        console.log('Header:', msg);
-    };
+		return async.parallel([
+			getDelegateProposals,
+		],
+		(err, res) => {
+			if (err) {
+				log('error', `Error retrieving: ${err}`);
+			} else {
+				tmpData.proposals = res[0];
+			}
 
-    var newInterval = function (i, delay, cb) {
-        if (intervals[i] !== undefined) {
-            return null;
-        } else {
-            intervals[i] = setInterval(cb, delay);
-            return intervals[i];
-        }
-    };
+			log('info', 'Emitting updated delegate proposals');
+			socket.emit('delegateProposals', tmpData.proposals);
+		});
+	};
 
-    var getBlockStatus = function (cb) {
-        if (running.getBlockStatus) {
-            return cb('getBlockStatus (already running)');
-        }
-        running.getBlockStatus = true;
-        blocks.getBlockStatus(
-            function (res) { running.getBlockStatus = false; cb('Status'); },
-            function (res) { running.getBlockStatus = false; cb(null, res); }
-        );
-    };
+	this.onInit = function () {
+		// Prevents data wipe
+		this.onConnect();
 
-    var getPriceTicker = function (cb) {
-        if (running.getPriceTicker) {
-            return cb('getPriceTicker (already running)');
-        }
-        running.getPriceTicker = true;
-        common.getPriceTicker(
-            function (res) { running.getPriceTicker = false; cb('PriceTicker'); },
-            function (res) { running.getPriceTicker = false; cb(null, res); }
-        );
-    };
+		async.parallel([
+			getBlockStatus,
+			getPriceTicker,
+		],
+		(err, res) => {
+			if (err) {
+				log('error', `Error retrieving: ${err}`);
+			} else {
+				data.status = res[0];
+				data.ticker = res[1];
 
-    var getDelegateProposals = function (cb) {
-        if (running.getDelegateProposals) {
-            return cb ('getDelegateProposals (already running)');
-        }
-        running.getDelegateProposals = true;
-        return delegates.getDelegateProposals (
-            function (res) { running.getDelegateProposals = false; cb ('DelegateProposals'); },
-            function (res) { running.getDelegateProposals = false; cb (null, res); }
-        );
-    };
+				log('info', 'Emitting new data');
+				socket.emit('data', data);
 
-    var emitData = function () {
-        var thisData = {};
+				newInterval(0, 10000, emitData);
+				// Update and emit delegate proposals every 10 minutes by default
+				newInterval(1, config.proposals.updateInterval || 600000, emitDelegateProposals);
+			}
+		});
 
-        async.parallel([
-            getBlockStatus,
-            getPriceTicker
-        ],
-        function (err, res) {
-            if (err) {
-                log('Error retrieving: ' + err);
-            } else {
-                thisData.status = res[0];
-                thisData.ticker = res[1];
+		emitDelegateProposals();
+	};
 
-                data = thisData;
-                log('Emitting data');
-                socket.emit('data', thisData);
-            }
-        }.bind(this));
-    };
+	this.onConnect = function () {
+		log('info', 'Emitting existing delegate proposals');
+		socket.emit('delegateProposals', tmpData.proposals);
 
-    var emitDelegateProposals = function () {
-        if (!config.proposals.enabled) {
-            return false;
-        }
-        
-        async.parallel ([
-            getDelegateProposals
-        ],
-        function (err, res) {
-            if (err) {
-                log ('Error retrieving: ' + err);
-            } else {
-                tmpData.proposals = res[0];
-            }
+		log('info', 'Emitting existing data');
+		socket.emit('data', data);
+	};
 
-            log ('Emitting updated delegate proposals');
-            socket.emit ('delegateProposals', tmpData.proposals);
-        });
-    };
+	this.onDisconnect = function () {
+		for (let i = 0; i < intervals.length; i++) {
+			clearInterval(intervals[i]);
+		}
+		intervals = [];
+	};
 };

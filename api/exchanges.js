@@ -1,43 +1,30 @@
-'use strict';
-
-var config  = require ('../config'),
-    candles = require ('../lib/api/candles'),
-    orders  = require ('../lib/api/orders');
-
-module.exports = function (app) {
-    var ordersApi = new orders(app),
-        candlesApi = new candles(app);
-
-    app.get('/api/exchanges', function (req, res) {
-        var result = {
-            success: true,
-            enabled: config.marketWatcher.enabled,
-            exchanges: config.marketWatcher.enabled ? config.marketWatcher.exchanges : []
-        };
-        return res.json(result);
-    });
-
-    app.get('/api/exchanges/getOrders', function (req, res, next) {
-        ordersApi.getOrders(
-            req.query.e,
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-
-    app.get('/api/exchanges/getCandles', function (req, res, next) {
-        candlesApi.getCandles(
-            { e: req.query.e, d: req.query.d },
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-
-    app.get('/api/exchanges/getStatistics', function (req, res, next) {
-        candlesApi.getStatistics(
-            req.query.e,
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-};
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		path: 'exchanges/getOrders',
+		service: 'orders',
+		params: req => req.query.e,
+	}, {
+		path: 'exchanges/getCandles',
+		service: 'candles',
+		params: req => ({ e: req.query.e, d: req.query.d }),
+	}, {
+		path: 'exchanges/getStatistics',
+		service: 'candles',
+		params: req => req.query.e,
+	},
+];

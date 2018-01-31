@@ -1,28 +1,42 @@
-import AppTools from '../app/app-tools.module.js';
-import ZeroClipboard from 'zeroclipboard';
-import ZeroClipboardSwf from '../assets/swf/ZeroClipboard.swf';
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+import Clipboard from 'clipboard';
+import AppTools from '../app/app-tools.module';
 
-
-AppTools.directive('clipCopy', () => {
-    return {
-        restric: 'A',
-        scope: { clipCopy: '=clipCopy' },
-        template: '<div class="tooltip fade right in"><div class="tooltip-arrow"></div><div class="tooltip-inner">Copied!</div></div>',
-        link: function (scope, elm) {
-            const clip = new ZeroClipboard(elm);
-
-            clip.on('ready', clp => {
-                const onAfterCopy = client => {
-                    clp.client.setText(scope.clipCopy);
-                };
-
-                clp.client.on('aftercopy', onAfterCopy);
-                scope.$on('$destroy', () => {
-                    clp.client.off('aftercopy', onAfterCopy);
-                });
-            });
-
-            clip.on('noFlash wrongflash', () => elm.remove());
-        }
-    };
-});
+AppTools.directive('clipCopy', () => ({
+	restric: 'A',
+	scope: { clipCopy: '=clipCopy' },
+	template: '<div class="tooltip fade right in"><div class="tooltip-arrow"></div><div class="tooltip-inner">{{tooltipText}}</div></div>',
+	link(scope, elm) {
+		scope.tooltipText = 'Copied!';
+		const clip = new Clipboard(elm[0], {
+			// eslint-disable-next-line no-unused-vars
+			text: target => scope.clipCopy,
+		});
+		clip.on('success', () => {
+			elm.addClass('active');
+		});
+		elm.on('mouseleave', () => {
+			elm.removeClass('active');
+		});
+		clip.on('error', () => {
+			scope.tooltipText = 'Press Ctrl+C to copy!';
+			scope.$apply();
+			elm.addClass('active');
+		});
+		scope.$on('$destroy', () => clip.destroy());
+	},
+}));

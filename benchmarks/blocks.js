@@ -1,46 +1,31 @@
-'use strict';
-
-module.exports = function (app, api) {
-    var blocks = new api.blocks(app);
-
-    this.getLastBlocks = function (deferred) {
-        blocks.getLastBlocks(
-            1,
-            function (data) {
-                deferred.resolve();
-                console.log('blocks.getLastBlocks ~>', 'Error retrieving blocks:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('blocks.getLastBlocks ~>', data.blocks.length, 'blocks retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getBlock = function (deferred) {
-        blocks.getBlock(
-            '13592630651917052637',
-            function (data) {
-                deferred.resolve();
-                console.log('blocks.getBlock ~>', 'Error retrieving block:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('blocks.getBlock ~>', 'block retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getBlockStatus = function (deferred) {
-        blocks.getBlockStatus(
-            function (data) {
-                deferred.resolve();
-                console.log('blocks.getBlockStatus ~>', 'Error retrieving status:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('blocks.getBlockStatus ~>', 'status retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-};
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		endpoint: 'getLastBlocks',
+		service: 'blocks',
+		params: 1,
+		data: data => data.blocks.length,
+	}, {
+		endpoint: 'getBlock',
+		service: 'blocks',
+		params: '13592630651917052637',
+	}, {
+		endpoint: 'getBlockStatus',
+		service: 'blocks',
+		params: undefined,
+	},
+];

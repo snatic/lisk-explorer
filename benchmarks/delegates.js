@@ -1,72 +1,45 @@
-'use strict';
-
-module.exports = function (app, api) {
-    var delegates = new api.delegates(app);
-
-    this.getActive = function (deferred) {
-        delegates.getActive(
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getActive ~>', 'Error retrieving delegates:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getActive ~>', data.delegates.length, 'delegates retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getStandby = function (deferred) {
-        delegates.getStandby(
-            0,
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getStandby ~>', 'Error retrieving delegates:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getStandby ~>', data.delegates.length, 'delegates retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getLatestRegistrations = function (deferred) {
-        delegates.getLatestRegistrations(
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getLatestRegistrations ~>', 'Error retrieving registrations:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getLatestRegistrations ~>', data.transactions.length, 'registrations retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getLatestVotes = function (deferred) {
-        delegates.getLatestVotes(
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getLatestVotes ~>', 'Error retrieving votes:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getLatestVotes ~>', data.transactions.length, 'votes retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getLastBlock = function (deferred) {
-        delegates.getLastBlock(
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getLastBlock ~>', 'Error retrieving block:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('delegates.getLastBlock ~>', 'block retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-};
-
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		endpoint: 'getActive',
+		service: 'delegates',
+		params: undefined,
+		data: data => data.delegates.length,
+	}, {
+		endpoint: 'getStandby',
+		service: 'delegates',
+		params: 0,
+		data: data => data.delegates.length,
+	}, {
+		endpoint: 'getLatestRegistrations',
+		service: 'delegates',
+		params: undefined,
+		title: 'registrations',
+		data: data => data.transactions.length,
+	}, {
+		endpoint: 'getLatestVotes',
+		service: 'delegates',
+		params: undefined,
+		title: 'votes',
+		data: data => data.transactions.length,
+	}, {
+		endpoint: 'getLastBlock',
+		service: 'delegates',
+		title: 'block',
+		params: undefined,
+	},
+];

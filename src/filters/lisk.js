@@ -1,9 +1,23 @@
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import AppFilters from './filters.module';
 
-AppFilters.filter('lisk', () => amount => {
-    if (isNaN(amount)) {
-        return (0).toFixed(8);
-    } else {
-        return (parseInt(amount) / 1e8).toFixed (8).replace (/\.?0+$/, '');
-    }
+AppFilters.filter('lisk', () => (amount) => {
+	if (isNaN(amount)) {
+		return (0).toFixed(8);
+	}
+	return (parseInt(amount, 10) / 1e8).toFixed(8).replace(/\.?0+$/, '');
 });

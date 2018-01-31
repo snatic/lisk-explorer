@@ -1,20 +1,34 @@
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
 import AppFilters from './filters.module';
 
-AppFilters.filter('currency', (numberFilter, liskFilter) => (amount, currency, decimal_places) => {
-    const lisk = liskFilter (amount);
-    let factor = 1;
+AppFilters.filter('currency', (numberFilter, liskFilter) => (amount, currency, decimalPlaces) => {
+	const lisk = liskFilter(amount);
+	let factor = 1;
 
-    if (currency.tickers && currency.tickers.LSK && currency.tickers.LSK[currency.symbol]) {
-      factor = currency.tickers.LSK[currency.symbol];
-    } else if (currency.symbol !== 'LSK') {
-      // Exchange rate not available for current symbol
-      return 'N/A';
-    }
+	if (currency.tickers && currency.tickers.LSK && currency.tickers.LSK[currency.symbol]) {
+		factor = currency.tickers.LSK[currency.symbol];
+	} else if (currency.symbol !== 'LSK') {
+		// Exchange rate not available for current symbol
+		return 'N/A';
+	}
 
-    let decimals = (currency.symbol === 'LSK' || currency.symbol === 'BTC') ? decimal_places : 2;
-    if (decimals && lisk > 0) {
-      return numberFilter ((lisk * factor), decimals);
-    } else {
-      return numberFilter ((lisk * factor), 8).replace (/\.?0+$/, '');
-    }
+	const decimals = (currency.symbol === 'LSK' || currency.symbol === 'BTC') ? decimalPlaces : 2;
+	if (decimals && lisk > 0) {
+		return numberFilter((lisk * factor), decimals);
+	}
+	return numberFilter((lisk * factor), 8).replace(/\.?0+$/, '');
 });

@@ -1,29 +1,30 @@
-'use strict';
-
-var statistics = require('../lib/api/statistics');
-
-module.exports = function (app) {
-    var api = new statistics(app);
-
-    app.get('/api/statistics/getLastBlock', function (req, res) {
-        api.getLastBlock(
-            function (data) { res.json(data); },
-            function (data) { res.json(data); }
-        );
-    });
-
-    app.get('/api/statistics/getBlocks', function (req, res) {
-        api.getBlocks(
-            function (data) { res.json(data); },
-            function (data) { res.json(data); }
-        );
-    });
-
-    app.get('/api/statistics/getPeers', function (req, res) {
-        api.getPeers(
-            function (data) { res.json(data); },
-            function (data) { res.json(data); }
-        );
-    });
-};
-
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		path: 'statistics/getLastBlock',
+		service: 'statistics',
+		params: () => undefined,
+	}, {
+		path: 'statistics/getBlocks',
+		service: 'statistics',
+		params: () => undefined,
+	}, {
+		path: 'statistics/getPeers',
+		service: 'statistics',
+		params: () => undefined,
+	},
+];

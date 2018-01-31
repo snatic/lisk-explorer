@@ -1,64 +1,73 @@
-'use strict';
-
-var candles = require('../lib/candles'),
-    async = require('async');
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+const candles = require('../lib/candles');
+const async = require('async');
+const logger = require('./logger');
 
 module.exports = function (config, client) {
-    this.updateCandles = function () {
-        if (running) {
-            console.error('Candles:', 'Update already in progress');
-            return;
-        } else {
-            running = true;
-        }
-        async.series([
-            function (callback) {
-                if (!config.marketWatcher.exchanges.poloniex) {
-                    callback(null);
-                } else {
-                    poloniex.updateCandles(function (err, res) {
-                        if (err) {
-                            callback(err);
-                        } else {
-                            callback(null, res);
-                        }
-                    });
-                }
+	let running = false;
+	const poloniex = new candles.poloniex(client);
+	const bittrex = new candles.bittrex(client);
 
-            },
-            function (callback) {
-                if (!config.marketWatcher.exchanges.bittrex) {
-                    callback(null);
-                } else {
-                    bittrex.updateCandles(function (err, res) {
-                        if (err) {
-                            callback(err);
-                        } else {
-                            callback(null, res);
-                        }
-                    });
-                }
-            }
-        ],
-        function (err, results) {
-            if (err) {
-                console.error('Candles:', 'Error updating candles:', err);
-            } else {
-                console.log('Candles:', 'Updated successfully');
-            }
-            running = false;
-        });
-    };
+	this.updateCandles = function () {
+		if (running) {
+			logger.error('Candles:', 'Update already in progress');
+			return;
+		}
+		running = true;
 
-    // Interval
+		async.series([
+			(callback) => {
+				if (!config.marketWatcher.exchanges.poloniex) {
+					callback(null);
+				} else {
+					poloniex.updateCandles((err, res) => {
+						if (err) {
+							callback(err);
+						} else {
+							callback(null, res);
+						}
+					});
+				}
+			},
+			(callback) => {
+				if (!config.marketWatcher.exchanges.bittrex) {
+					callback(null);
+				} else {
+					bittrex.updateCandles((err, res) => {
+						if (err) {
+							callback(err);
+						} else {
+							callback(null, res);
+						}
+					});
+				}
+			},
+		],
+		(err) => {
+			if (err) {
+				logger.error('Candles:', 'Error updating candles:', err);
+			} else {
+				logger.info('Candles:', 'Updated successfully');
+			}
+			running = false;
+		});
+	};
 
-    if (config.marketWatcher.enabled) {
-        setInterval(this.updateCandles, config.marketWatcher.candles.updateInterval);
-    }
-
-    // Private
-
-    var poloniex = new candles.poloniex(client),
-        bittrex = new candles.bittrex(client),
-        running = false;
+	if (config.marketWatcher.enabled) {
+		setInterval(this.updateCandles, config.marketWatcher.candles.updateInterval);
+	}
 };

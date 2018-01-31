@@ -1,102 +1,111 @@
-'use strict';
-
-var config = require('../config'),
-    client = require('../redis')(config),
-    candles = require('../lib/candles'),
-    async = require('async');
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+const config = require('../config');
+const client = require('../redis')(config);
+const candles = require('../lib/candles');
+const async = require('async');
 
 module.exports = function (grunt) {
-    grunt.registerTask('candles:build', 'Build exchange candle data.', function () {
-        var done = this.async();
+	grunt.registerTask('candles:build', 'Build exchange candle data.', function () {
+		const done = this.async();
 
-        async.series([
-            function (callback) {
-                // Skip exchange if not enabled
-                if (!config.marketWatcher.exchanges.poloniex) {
-                    return callback(null);
-                }
+		async.series([
+			(callback) => {
+				// Skip exchange if not enabled
+				if (!config.marketWatcher.exchanges.poloniex) {
+					return callback(null);
+				}
 
-                var poloniex = new candles.poloniex(client, config.marketWatcher.candles.poloniex);
+				const poloniex = new candles.poloniex(client, config.marketWatcher.candles.poloniex);
 
-                poloniex.buildCandles(function (err, res) {
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        return callback(null, res);
-                    }
-                });
-            },
-            function (callback) {
-                // Skip exchange if not enabled
-                if (!config.marketWatcher.exchanges.bittrex) {
-                    return callback(null);
-                }
+				return poloniex.buildCandles((err, res) => {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null, res);
+				});
+			},
+			(callback) => {
+				// Skip exchange if not enabled
+				if (!config.marketWatcher.exchanges.bittrex) {
+					return callback(null);
+				}
 
-                var bittrex = new candles.bittrex(client);
+				const bittrex = new candles.bittrex(client);
 
-                bittrex.buildCandles(function (err, res) {
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        return callback(null, res);
-                    }
-                });
-            }
-        ],
-        function (err, results) {
-            if (err) {
-                grunt.log.error(err);
-                done(false);
-            } else {
-                done(true);
-            }
-        });
-    });
+				return bittrex.buildCandles((err, res) => {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null, res);
+				});
+			},
+		],
+		(err) => {
+			if (err) {
+				grunt.log.error(err);
+				done(false);
+			} else {
+				done(true);
+			}
+		});
+	});
 
-    grunt.registerTask('candles:update', 'Update exchange candle data.', function () {
-        var done = this.async();
+	grunt.registerTask('candles:update', 'Update exchange candle data.', function () {
+		const done = this.async();
 
-        async.series([
-            function (callback) {
-                // Skip exchange if not enabled
-                if (!config.marketWatcher.exchanges.poloniex) {
-                    return callback(null);
-                }
+		async.series([
+			(callback) => {
+				// Skip exchange if not enabled
+				if (!config.marketWatcher.exchanges.poloniex) {
+					return callback(null);
+				}
 
-                var poloniex = new candles.poloniex(client);
+				const poloniex = new candles.poloniex(client);
 
-                poloniex.updateCandles(function (err, res) {
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        return callback(null, res);
-                    }
-                });
-            },
-            function (callback) {
-                // Skip exchange if not enabled
-                if (!config.marketWatcher.exchanges.bittrex) {
-                    return callback(null);
-                }
+				return poloniex.updateCandles((err, res) => {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null, res);
+				});
+			},
+			(callback) => {
+				// Skip exchange if not enabled
+				if (!config.marketWatcher.exchanges.bittrex) {
+					return callback(null);
+				}
 
-                var bittrex = new candles.bittrex(client);
+				const bittrex = new candles.bittrex(client);
 
-                bittrex.updateCandles(function (err, res) {
-                    if (err) {
-                        return callback(err);
-                    } else {
-                        return callback(null, res);
-                    }
-                });
-            }
-        ],
-        function (err, results) {
-            if (err) {
-                grunt.log.error(err);
-                done(false);
-            } else {
-                done(true);
-            }
-        });
-    });
+				return bittrex.updateCandles((err, res) => {
+					if (err) {
+						return callback(err);
+					}
+					return callback(null, res);
+				});
+			},
+		],
+		(err) => {
+			if (err) {
+				grunt.log.error(err);
+				done(false);
+			} else {
+				done(true);
+			}
+		});
+	});
 };

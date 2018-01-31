@@ -1,51 +1,72 @@
-'use strict';
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+const logger = require('../utils/logger');
 
 module.exports = function (app, io) {
-    var ns = {
-        header          : io.of('/header'),
-        activityGraph   : io.of('/activityGraph'),
-        delegateMonitor : io.of('/delegateMonitor'),
-        marketWatcher   : io.of('/marketWatcher'),
-        networkMonitor  : io.of('/networkMonitor')
-    };
+	const ns = {
+		header: io.of('/header'),
+		activityGraph: io.of('/activityGraph'),
+		delegateMonitor: io.of('/delegateMonitor'),
+		marketWatcher: io.of('/marketWatcher'),
+		networkMonitor: io.of('/networkMonitor'),
+	};
 
-    var header          = require('./header'),
-        activityGraph   = require('./activityGraph'),
-        delegateMonitor = require('./delegateMonitor'),
-        marketWatcher   = require('./marketWatcher'),
-        networkMonitor  = require('./networkMonitor');
+	const header = require('./header');
+	const activityGraph = require('./activityGraph');
+	const delegateMonitor = require('./delegateMonitor');
+	const marketWatcher = require('./marketWatcher');
+	const networkMonitor = require('./networkMonitor');
 
-    var connectionHandler = function (name, ns, object) {
-        ns.on('connection', function (socket) {
-            if (clients() <= 1) {
-                object.onInit();
-                console.log(name, 'First connection');
-            } else {
-                object.onConnect();
-                console.log(name, 'New connection');
-            }
-            socket.on('disconnect', function () {
-                if (clients() <= 0) {
-                    object.onDisconnect();
-                    console.log(name, 'Closed connection');
-                }
-            });
-            socket.on('forceDisconnect', function () {
-                socket.disconnect();
-            });
-        });
+	const clients = _ns => Object.keys(_ns.connected).length;
 
-        // Private
+	/**
+	 * @todo Which ns variable?
+	 */
+	const connectionHandler = function (name, _ns, object) {
+		_ns.on('connection', (socket) => {
+			if (clients(_ns) <= 1) {
+				object.onInit();
+				logger.info(name, 'First connection');
+			} else {
+				object.onConnect();
+				logger.info(name, 'New connection');
+			}
+			socket.on('disconnect', () => {
+				if (clients(_ns) <= 0) {
+					object.onDisconnect();
+					logger.info(name, 'Closed connection');
+				}
+			});
+			socket.on('forceDisconnect', () => {
+				socket.disconnect();
+			});
+		});
+	};
 
-        var clients = function () {
-            return Object.keys(ns.connected).length;
-        };
-    };
+	/**
+	 * @todo I've used this object to eliminate no-new error
+	 * Creating an instance of a constructor while not storing the results
+	 * is a clear sign of side effects.
+	 */
+	const sideEffects = {};
 
-    new header(app, connectionHandler, ns.header);
-    new activityGraph(app, connectionHandler, ns.activityGraph);
-    new delegateMonitor(app, connectionHandler, ns.delegateMonitor);
-    new marketWatcher(app, connectionHandler, ns.marketWatcher);
-    new networkMonitor(app, connectionHandler, ns.networkMonitor);
+	sideEffects.header = new header(app, connectionHandler, ns.header);
+	sideEffects.activityGraph = new activityGraph(app, connectionHandler, ns.activityGraph);
+	sideEffects.delegateMonitor = new delegateMonitor(app, connectionHandler, ns.delegateMonitor);
+	sideEffects.marketWatcher = new marketWatcher(app, connectionHandler, ns.marketWatcher);
+	sideEffects.networkMonitor = new networkMonitor(app, connectionHandler, ns.networkMonitor);
 };
 

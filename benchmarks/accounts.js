@@ -1,34 +1,27 @@
-'use strict';
-
-module.exports = function (app, api) {
-    var accounts = new api.accounts(app);
-
-    this.getAccount = function (deferred) {
-        accounts.getAccount(
-            {address: '12907382053545086321L'},
-            function (data) {
-                deferred.resolve();
-                console.log('accounts.getAccount ~>', 'Error retrieving account:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('accounts.getAccount ~>', 'account retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getTopAccounts = function (deferred) {
-        accounts.getTopAccounts(
-            { offset : 0, limit : 50 },
-            function (data) {
-                deferred.resolve();
-                console.log('accounts.getTopAccounts ~>', 'Error retrieving accounts:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('accounts.getTopAccounts ~>', data.accounts.length, 'accounts retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-};
-
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		endpoint: 'getAccount',
+		service: 'accounts',
+		params: { address: '12907382053545086321L' },
+	}, {
+		endpoint: 'getTopAccounts',
+		service: 'accounts',
+		params: { offset: 0, limit: 50 },
+		data: data => data.accounts.length,
+	},
+];

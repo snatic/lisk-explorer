@@ -1,78 +1,51 @@
-'use strict';
-
-module.exports = function (app, api) {
-    var transactions = new api.transactions(app);
-
-    this.getTransaction = function (deferred) {
-        transactions.getTransaction(
-            '6538470051935780976',
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getTransaction ~>', 'Error retrieving transaction:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getTransaction ~>', 'transaction retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getUnconfirmedTransactions = function (deferred) {
-        transactions.getUnconfirmedTransactions(
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getUnconfirmedTransactions ~>', 'Error retrieving transactions:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getUnconfirmedTransactions ~>', data.transactions.length, 'transactions retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getLastTransactions = function (deferred) {
-        transactions.getLastTransactions(
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getLastTransactions ~>', 'Error retrieving transactions:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getLastTransactions ~>', data.transactions.length, 'transactions retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getTransactionsByAddress = function (deferred) {
-        transactions.getTransactionsByAddress(
-            { address : '12907382053545086321C',
-              offset  : 0,
-              limit   : 100 },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getTransactionsByAddress ~>', 'Error retrieving transactions:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getTransactionsByAddress ~>', data.transactions.length, 'transactions retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-
-    this.getTransactionsByBlock = function (deferred) {
-        transactions.getTransactionsByBlock(
-            { blockId : '13592630651917052637',
-              offset  : 0,
-              limit   : 100 },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getTransactionsByBlock ~>', 'Error retrieving transactions:', data.error);
-            },
-            function (data) {
-                deferred.resolve();
-                console.log('transactions.getTransactionsByBlock ~>', data.transactions.length, 'transactions retrieved in', String(deferred.elapsed), 'seconds');
-            }
-        );
-    };
-};
-
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		endpoint: 'getTransaction',
+		service: 'transactions',
+		title: 'transaction',
+		params: '6538470051935780976',
+	}, {
+		endpoint: 'getUnconfirmedTransactions',
+		service: 'transactions',
+		params: undefined,
+		data: data => data.transactions.length,
+	}, {
+		endpoint: 'getLastTransactions',
+		service: 'transactions',
+		params: undefined,
+		data: data => data.transactions.length,
+	}, {
+		endpoint: 'getTransactionsByAddress',
+		service: 'transactions',
+		params: {
+			address: '12907382053545086321C',
+			offset: 0,
+			limit: 100,
+		},
+		data: data => data.transactions.length,
+	}, {
+		endpoint: 'getTransactionsByBlock',
+		service: 'transactions',
+		params: {
+			blockId: '13592630651917052637',
+			offset: 0,
+			limit: 100,
+		},
+		data: data => data.transactions.length,
+	},
+];

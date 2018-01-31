@@ -1,51 +1,42 @@
-'use strict';
-
-var transactions = require('../lib/api/transactions');
-
-module.exports = function (app) {
-    var api = new transactions(app);
-
-    app.get('/api/getTransaction', function (req, res, next) {
-        api.getTransaction(
-            req.query.transactionId,
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-
-    app.get('/api/getUnconfirmedTransactions', function (req, res, next) {
-        api.getUnconfirmedTransactions(
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-
-    app.get('/api/getLastTransactions', function (req, res, next) {
-        api.getLastTransactions(
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-
-    app.get('/api/getTransactionsByAddress', function (req, res, next) {
-        api.getTransactionsByAddress(
-            { address   : req.query.address,
-              direction : req.query.direction,
-              offset    : req.query.offset,
-              limit     : req.query.limit },
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-
-    app.get('/api/getTransactionsByBlock', function (req, res, next) {
-        api.getTransactionsByBlock(
-          { blockId : req.query.blockId,
-            offset  : req.query.offset,
-            limit   : req.query.limit },
-            function (data) { res.json(data); },
-            function (data) { req.json = data; return next(); }
-        );
-    });
-};
-
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		path: 'getTransaction',
+		service: 'transactions',
+		params: req => req.query.transactionId,
+	}, {
+		path: 'getUnconfirmedTransactions',
+		service: 'transactions',
+		params: () => undefined,
+	}, {
+		path: 'getLastTransactions',
+		service: 'transactions',
+		params: () => undefined,
+	}, {
+		path: 'getTransactionsByAddress',
+		service: 'transactions',
+		params: req => req.query,
+	}, {
+		path: 'getTransactionsByBlock',
+		service: 'transactions',
+		params: req => ({
+			blockId: req.query.blockId,
+			offset: req.query.offset,
+			limit: req.query.limit,
+		}),
+	},
+];

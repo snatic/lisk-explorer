@@ -1,46 +1,35 @@
-'use strict';
-
-module.exports = function (app, api) {
-    var statistics = new api.statistics(app);
-
-    this.getBlocks = function (deferred) {
-        statistics.getBlocks(
-              function (data) {
-                  deferred.resolve();
-                  console.log('statistics.getBlocks ~>', 'Error retrieving blocks:', data.error);
-              },
-              function (data) {
-                  deferred.resolve();
-                  console.log('statistics.getBlocks ~>', String(data.volume.blocks), 'blocks retrieved in', String(deferred.elapsed), 'seconds');
-              }
-        );
-    };
-
-    this.getLastBlock = function (deferred) {
-        statistics.getLastBlock(
-              function (data) {
-                  deferred.resolve();
-                  console.log('statistics.getLastBlock ~>', 'Error retrieving block:', data.error);
-              },
-              function (data) {
-                  deferred.resolve();
-                  console.log('statistics.getLastBlock ~>', 'block retrieved in', String(deferred.elapsed), 'seconds');
-              }
-        );
-    };
-
-    this.getPeers = function (deferred) {
-        statistics.locator.disabled = true;
-        statistics.getPeers(
-              function (data) {
-                  deferred.resolve();
-                  console.log('statistics.getPeers ~>', 'Error retrieving peers:', data.error);
-              },
-              function (data) {
-                  deferred.resolve();
-                  console.log('statistics.getPeers ~>', (data.list.connected.length + data.list.disconnected.length), 'peers retrieved in', String(deferred.elapsed), 'seconds');
-              }
-        );
-    };
-};
-
+/*
+ * LiskHQ/lisk-explorer
+ * Copyright © 2018 Lisk Foundation
+ *
+ * See the LICENSE file at the top-level directory of this distribution
+ * for licensing information.
+ *
+ * Unless otherwise agreed in a custom licensing agreement with the Lisk Foundation,
+ * no part of this software, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ *
+ * Removal or modification of this copyright notice is prohibited.
+ *
+ */
+module.exports = [
+	{
+		endpoint: 'getLastBlock',
+		service: 'statistics',
+		title: 'blocks',
+		params: undefined,
+		data: data => data.volume.blocks,
+	}, {
+		endpoint: 'getBlocks',
+		service: 'statistics',
+		title: 'blocks',
+		params: undefined,
+	}, {
+		endpoint: 'getPeers',
+		service: 'statistics',
+		title: 'peers',
+		params: undefined,
+		data: data => (data.list.connected.length + data.list.disconnected.length),
+	},
+];
